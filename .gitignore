@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Playwright / pytest artifacts
+test-results/
+playwright-report/
+blob-report/
+*.webm
+*.png
+*.zip
+
+# Allure artifacts
+allure-results/
+allure-report/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# IDE / editor
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# OS files
+.DS_Store
+Thumbs.db

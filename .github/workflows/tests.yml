@@ -1,0 +1,80 @@
+name: Expand Testing Practice Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: Playwright browser to run UI tests in
+        required: true
+        default: chromium
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+
+jobs:
+  tests:
+    name: pytest (${{ github.event.inputs.browser || 'chromium' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      PLAYWRIGHT_BROWSER: ${{ github.event.inputs.browser || 'chromium' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps $PLAYWRIGHT_BROWSER
+
+      - name: Run API tests
+        run: pytest -m api -o addopts="" --alluredir=allure-results/api
+
+      - name: Run UI tests
+        run: >
+          pytest -m ui
+          -o addopts="--tracing retain-on-failure --screenshot only-on-failure"
+          --browser $PLAYWRIGHT_BROWSER
+          --alluredir=allure-results/ui
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          if-no-files-found: ignore
+          retention-days: 7
