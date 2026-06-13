@@ -1,6 +1,9 @@
 import pytest
 from playwright.sync_api import Page
 
+MOBILE_VIEWPORT = {"width": 390, "height": 844}
+DESKTOP_VIEWPORT = {"width": 1400, "height": 900}
+
 
 def pytest_collection_modifyitems(config, items):
     selected_browsers = config.getoption("browser") or []
@@ -30,9 +33,16 @@ def pytest_collection_modifyitems(config, items):
 def browser_context_args(browser_context_args):
     return {
         **browser_context_args,
-        "viewport": {"width": 1400, "height": 900},
+        "viewport": DESKTOP_VIEWPORT,
         "locale": "en-US",
     }
+
+
+@pytest.fixture
+def mobile_page(page: Page, request):
+    if request.node.get_closest_marker("mobile"):
+        page.set_viewport_size(MOBILE_VIEWPORT)
+    return page
 
 
 @pytest.fixture(autouse=True)

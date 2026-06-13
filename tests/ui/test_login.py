@@ -1,16 +1,14 @@
-from pathlib import Path
-import sys
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
 import pytest
 from playwright.sync_api import Page
 
 from pages.login_page import LoginPage
 from pages.secure_page import SecurePage
-from test_data.users import INVALID_PASSWORD, INVALID_USERNAME, VALID_PASSWORD, VALID_USERNAME
+from test_data.users import (
+    INVALID_PASSWORD,
+    INVALID_USERNAME,
+    VALID_PASSWORD,
+    VALID_USERNAME,
+)
 
 
 @pytest.mark.ui
@@ -30,22 +28,20 @@ def test_valid_user_can_login(page: Page) -> None:
 @pytest.mark.ui
 @pytest.mark.auth
 @pytest.mark.negative
-def test_invalid_username_shows_error(page: Page) -> None:
+@pytest.mark.parametrize(
+    "username, password, expected_error",
+    [
+        (INVALID_USERNAME, VALID_PASSWORD, "Your username is invalid!"),
+        (VALID_USERNAME, INVALID_PASSWORD, "Your password is invalid!"),
+    ],
+    ids=["invalid-username", "invalid-password"],
+)
+def test_login_with_invalid_credentials_shows_error(
+    page: Page, username: str, password: str, expected_error: str
+) -> None:
     login_page = LoginPage(page)
 
     login_page.open()
-    login_page.login(INVALID_USERNAME, VALID_PASSWORD)
+    login_page.login(username, password)
 
-    login_page.expect_error("Your username is invalid!")
-
-
-@pytest.mark.ui
-@pytest.mark.auth
-@pytest.mark.negative
-def test_invalid_password_shows_error(page: Page) -> None:
-    login_page = LoginPage(page)
-
-    login_page.open()
-    login_page.login(VALID_USERNAME, INVALID_PASSWORD)
-
-    login_page.expect_error("Your password is invalid!")
+    login_page.expect_error(expected_error)

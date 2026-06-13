@@ -21,3 +21,7 @@ class LoginPage:
     def expect_error(self, message: str) -> None:
         expect(self.locators.alert_message(self.page)).to_be_visible()
         expect(self.locators.alert_message(self.page)).to_have_text(message)
+
+    def expect_logout_message(self, message: str) -> None:
+        expect(self.locators.alert_message(self.page)).to_be_visible()
+        expect(self.locators.alert_message(self.page)).to_contain_text(message)
